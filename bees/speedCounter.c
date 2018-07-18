@@ -1,6 +1,7 @@
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 int bit;
 int a;
@@ -30,7 +31,6 @@ int main (void)
 			{
 
 				printf("%d",bit);
-
 				bitArray[a] = bit;
 				printf("Printing\n");
 				printf("%d", bitArray[0]);
@@ -43,6 +43,14 @@ int main (void)
 				bit = digitalRead (0);
 			
 			}
+
+/* Gettint Unux time*/
+ time_t seconds;
+
+   seconds = time(NULL);
+   printf("Seconds since January 1, 1970 = %ld\n", seconds);
+
+
 /* Putting data into the file */
 
 		FILE *fptr;
@@ -52,11 +60,11 @@ int main (void)
      		 		printf("Error!, can not access the file, does it exist?\n");   
     		  		exit(1);             
    			} 
-
-		fprintf(fptr,"In=%i",In);
-		fprintf(fptr,"Out=%i",Out);
-		fprintf(fptr,"SpeedIn=%.1f",speedIn);	
-		fprintf(fptr,"SpeedOut=%.1f\n",speedOut);
+		fprintf(fptr,"Time=%ld,",seconds);
+		fprintf(fptr,"In=%i,",In);
+		fprintf(fptr,"Out=%i,",Out);
+		fprintf(fptr,"SpeedIn=%.1f,",speedIn);	
+		fprintf(fptr,"SpeedOut=%.1f\n,",speedOut);
 
 		fclose(fptr);
 

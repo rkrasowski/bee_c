@@ -32,8 +32,7 @@ int counter();
 
 
 int main (void)
-	{	
-	
+	{
 		wiringPiSetup();
 		pinMode (2, OUTPUT);
 		pinMode (3, OUTPUT);
@@ -42,7 +41,6 @@ int main (void)
 		digitalWrite (3,LOW);
 		delay(1);
 		digitalWrite (3,HIGH);
-		
 		bit = digitalRead(0);
 
 		for (sensorNr =0; sensorNr<24; sensorNr=sensorNr+1)
@@ -54,13 +52,11 @@ int main (void)
 				bitArray[sensorNr] = bit;
 			/*	printf("%d", bitArray[0]) ;*/
 
-
 				digitalWrite (2, HIGH);
 				delay(1);
 				digitalWrite (2, LOW);
 				delay(1);
 				bit = digitalRead (0);
-			
 			}
 
 /* Gettint Unux time*/
@@ -75,9 +71,9 @@ int main (void)
 		FILE *fptr;
 		fptr = fopen("file.txt","a");
 		if(fptr == NULL)
-   			{		
-     		 		printf("Error!, can not access the file, does it exist?\n");   
-    		  		exit(1);             
+   			{
+     		 		printf("Error!, can not access the file, does it exist?\n");
+    		  		exit(1);
    			} 
 		fprintf(fptr,"Time=%ld,",seconds);
 		fprintf(fptr,"In=%i,",In);
@@ -89,19 +85,11 @@ int main (void)
 
 		bitArray[23] = 5;
 
+
+/* Data analysis  */
+
 		counter(sensorNr,bitArray);
 
-
-	for ( loopA=0; loopA<= numOfChannels*2; loopA++)
-		{
-        		printf("%d\n",bitArray[loopA]);
-			/* Check for even number */
-			if(bitArray[loopA] % 2 == 0)	
-				{
-					printf(" It is even number\n");
-				}	
-
-		}
 
 		return 0;
 	}
@@ -112,10 +100,31 @@ int main (void)
 
 int counter(int sensorNrIns, int bitArray[]) 
 	{
-		
+		 for ( loopA=0; loopA<= numOfChannels*2; loopA++)
+                {
+                        printf("Sensor number: %d\n",loopA);
+
 			
-	
-		
+                        /* Check for even number */
+                        if(loopA % 2 == 0)    
+                                {
+                                        printf(" It is even number\n");
+
+
+
+
+
+
+
+                                }
+
+			else 
+				{
+					printf(" It is odd number\n");
+				}	
+
+                }
+
 	/*	printf("Inside function %d", bitArray[1]);*/
 		return 0;
 	}

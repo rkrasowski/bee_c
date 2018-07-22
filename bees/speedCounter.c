@@ -26,6 +26,8 @@ long long int timeInArray[10000];	/* Times IN to average for later speed calcula
 long long int  timeOutArray[10000];	/* Times OUT to average for later speed calculation */
 int timeInNumber = 0;		/* Number of the element in timeInArray, will be reset at snding to file */
 int timeOutNumber = 0;		/* Number of the ellement in timeOutArray, will be reset at sending to file */
+
+
 long long int startTestTime;
 float elapsTime;
 
@@ -52,7 +54,6 @@ int main (void)
 				if (time2be > (unsigned)time(NULL))
 					{
 						startTestTime = getMicrotime();
-						printf("Checking shift registers\n");
 						delay(1000);
 
 						wiringPiSetup();
@@ -147,8 +148,6 @@ int main (void)
                 						if (timeInArray[speedLoop] != 0)
 									{
 										sum = sum + timeInArray[speedLoop];
-										printf("timeInArray is: %lld !!!!!!!!!!!!!!!\n",timeInArray[speedLoop]);
-										printf("speedLoop nr: %d\n",speedLoop);
 										numOfElements = numOfElements +1;
 									}
 							}
@@ -199,9 +198,8 @@ int main (void)
 						out = 0;
 						speedIn = 0;
 						speedOut = 0;
-						
 
-					int loopErase;	
+					int loopErase;
 
 					for(loopErase =0; loopErase <= timeInNumber; loopErase++)
 						{
@@ -214,7 +212,7 @@ int main (void)
                                                         timeOutArray[loopErase] = 0;
                                                 }
 
-						 timeInNumber = 0;
+						timeInNumber = 0;
                                                 timeOutNumber = 0;
 
 
@@ -226,11 +224,10 @@ int main (void)
    							for(loopTest = 0; loopTest <= timeInNumber; loopTest++)
 								{
       									printf("Time in number array: %d\n ", timeInNumber);
-      
+
 								}
 
-				*/		
-	
+				*/
 						time2be = (unsigned)time(NULL) + delay2send;
 					}
 
@@ -271,7 +268,7 @@ int counter ()
 							inOutArray[loopA] = 1;
 							inOutArray[loopA+1] = 1;
 							timeArray[loopA] = getMicrotime();
-							printf("Inside EVEN pos 1\n");
+							printf("EVEN pos 1\n");
 						}
 					/* Case of bee walking in and second sensor is triggeredm, time calculated */
 					else if (bitArray[loopA] == 1 && bitArray[loopA+1] == 1 && inOutArray[loopA] ==1 && timeArray[loopA+1] == 0)
@@ -280,7 +277,7 @@ int counter ()
 							timeInArray[timeInNumber] = timeDiff;
 							timeInNumber = timeInNumber+1;
 							in = in +1;
-							printf("Inside EVEN pos 2\n");
+							printf("EVEN pos 2\n");
 						}
 
 					else if (bitArray[loopA] == 0 && bitArray[loopA+1] == 0 && inOutArray[loopA] == 1 && inOutArray[loopA+1] == 1)
@@ -289,7 +286,7 @@ int counter ()
 							inOutArray[loopA+1] = 0;
 							timeArray[loopA] = 0;
 							timeArray[loopA+1] = 0;
-							printf("Inside EVEN pos 3\n");
+							printf("EVEN pos 3\n");
 						}
 
 
@@ -304,7 +301,7 @@ int counter ()
                                                         inOutArray[loopA] = 1;
                                                         inOutArray[loopA-1] = 1;
                                                         timeArray[loopA] = getMicrotime();
-							printf("Inside ODD pos 1\n");
+							printf("ODD pos 1\n");
 
                                                 }
 					/* Case of bee walking in and second sensor is triggeredm, time calculated */
@@ -315,8 +312,7 @@ int counter ()
                                                         timeOutArray[timeOutNumber] = timeDiff;
                                                         timeOutNumber = timeOutNumber+1;
                                                         out = out +1;
-							printf("Inside ODD pos 2\n");
-							printf("DiffOut:%lld\n",timeOutArray[timeOutNumber-1]);
+							printf("ODD pos 2\n");
                                                 }
 
                                         else if (bitArray[loopA] == 0 && bitArray[loopA-1] == 0 && inOutArray[loopA] == 1 && inOutArray[loopA-1] == 1)
@@ -325,7 +321,7 @@ int counter ()
                                                         inOutArray[loopA-1] = 0;
 							timeArray[loopA] = 0;
 							timeArray[loopA-1] = 0;
-							printf("Inside ODD pos 3\n");
+							printf("ODD pos 3\n");
                                                 }
 
 				}

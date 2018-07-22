@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/time.h>
 
 /* Configuration variable*/
 int numOfChannels = 12;
@@ -13,13 +14,16 @@ int numOfChannels = 12;
 int bit;
 int loopA;
 int sensorNr;
-int in;
-int out;
+int in = 0;
+int out = 0;
 int inOutArray[24];
 int bitArray[24];
-int timeArray[24];
-float timeBeeIn;
-float timeBeeOut;
+long long int timeArray[24];
+long long int timeDiff;
+long long int timeInArray[10000];
+long long int  timeOutArray[10000];
+int timeInNumberArray = 0;
+int timeOutNumberArray = 0;
 
 
 
@@ -29,7 +33,7 @@ float speedIn=55.2;
 float speedOut=66.7;
 
 int counter();
-
+long long int getMicrotime();
 
 int main (void)
 	{
@@ -43,7 +47,7 @@ int main (void)
 		digitalWrite (3,HIGH);
 		bit = digitalRead(0);
 
-		for (sensorNr =0; sensorNr<24; sensorNr=sensorNr+1)
+		for (sensorNr =0; sensorNr<23; sensorNr=sensorNr+1)
 
 			{
 
@@ -58,6 +62,24 @@ int main (void)
 				delay(1);
 				bit = digitalRead (0);
 			}
+
+
+
+
+/* Just for testing */
+
+                bitArray[0] = 1;
+                inOutArray[2] = 0;
+		bitArray[3] = 0;
+
+
+
+
+/* Data analysis  */
+
+                counter(sensorNr,bitArray);
+
+
 
 /* Gettint Unux time*/
  time_t seconds;
@@ -83,12 +105,6 @@ int main (void)
 
 		fclose(fptr);
 
-		bitArray[23] = 5;
-
-
-/* Data analysis  */
-
-		counter(sensorNr,bitArray);
 
 
 		return 0;
@@ -98,35 +114,102 @@ int main (void)
 
 
 
-int counter(int sensorNrIns, int bitArray[]) 
+int counter (int sensorNrIns, int bitArray[], long long timeInArray[]) 
 	{
-		 for ( loopA=0; loopA<= numOfChannels*2; loopA++)
+		 for ( loopA=0; loopA<= numOfChannels*2-1; loopA++)
                 {
-                        printf("Sensor number: %d\n",loopA);
+                        printf("\n\nSensor number: %d, ",loopA);
+			printf("BitArray value: %d\n",bitArray[loopA]);
 
-			
-                        /* Check for even number */
-                        if(loopA % 2 == 0)    
+
+                        /* Check for even number - bee is going from Inside -> Outside*/
+                        if(loopA % 2 == 0)
                                 {
-                                        printf(" It is even number\n");
+					printf("In even routiine\n");
+					printf("bitArray+1:%d ",bitArray[loopA+1]);
+					printf("inOutArray:%d ",inOutArray[loopA]);
+					printf("inOutArray+1:%d ",inOutArray[loopA+1]);
 
+					/* Case of bee walking from outside to inside, first sensor triggered */
+					if (bitArray[loopA] == 1 && bitArray[loopA+1] == 0 && inOutArray[loopA] == 0 && inOutArray[loopA+1] == 0)
+						{
+							inOutArray[loopA] = 1;
+							inOutArray[loopA+1] = 1;
+							timeArray[loopA] = getMicrotime();
+						}
+					/* Case of bee walking in and second sensor is triggeredm, time calculated */
+					else if (bitArray[loopA] == 1 && bitArray[loopA+1] == 1 && inOutArray[loopA] ==1)
+						{
+							timeDiff = getMicrotime() - timeArray[loopA];
+							timeInArray[timeInNumberArray] = timeDiff;
+							timeInNumberArray = timeInNumberArray+1;
+							in = in +1;
+						}
 
-
-
-
-
+					else if (bitArray[loopA] == 0 && bitArray[loopA+1] == 0 && inOutArray[loopA] == 1 && inOutArray[loopA+1] == 1)
+						{
+							inOutArray[loopA] = 0;
+							inOutArray[loopA+1] = 0;
+							printf("Opening channel, sensor nr %d",loopA);
+						}
 
                                 }
 
-			else 
+			else
 				{
-					printf(" It is odd number\n");
-				}	
+					printf("In odd routiine\n");
+					printf ("Number: %d\n",loopA);
+                                        printf("bitArray-1:%d ",bitArray[loopA-1]);
+                                        printf("inOutArray:%d ",inOutArray[loopA]);
+                                        printf("inOutArray-1:%d ",inOutArray[loopA-1]);
+
+					/* Case of bee walking from outside to inside, first sensor triggered */
+                                        if (bitArray[loopA] == 1 && bitArray[loopA-1] == 0 && inOutArray[loopA] == 0 && inOutArray[loopA-1] == 0)
+                                                {
+                                                        inOutArray[loopA] = 1;
+                                                        inOutArray[loopA-1] = 1;
+                                                        timeArray[loopA] = getMicrotime();
+                                                }
+					/* Case of bee walking in and second sensor is triggeredm, time calculated */
+
+                                        else if (bitArray[loopA] == 1 && bitArray[loopA-1] == 1 && inOutArray[loopA] ==1)
+                                                {
+                                                        timeDiff = getMicrotime() - timeArray[loopA];
+                                                        timeInArray[timeInNumberArray] = timeDiff;
+                                                        timeInNumberArray = timeInNumberArray-1;
+                                                        out = out +1;
+                                                }
+
+                                        else if (bitArray[loopA] == 0 && bitArray[loopA+1] == 0 && inOutArray[loopA] == 1 && inOutArray[loopA-1] == 1)
+                                                {
+                                                        inOutArray[loopA] = 0;
+                                                        inOutArray[loopA-1] = 0;
+                                                }
+
+				}
 
                 }
 
 	/*	printf("Inside function %d", bitArray[1]);*/
 		return 0;
 	}
+
+
+
+long long int getMicrotime()
+        {
+                struct timeval timer_usec; 
+                long long int timestamp_usec; /* timestamp in microsecond */
+                if (!gettimeofday(&timer_usec, NULL)) 
+                        {
+                                timestamp_usec = ((long long int) timer_usec.tv_sec) * 1000000ll + 
+                                (long long int) timer_usec.tv_usec;
+                        }
+                else
+                        {
+                                timestamp_usec = -1;
+                        }
+                return timestamp_usec;
+        }
 
 

@@ -11,19 +11,19 @@ int numOfChannels = 2;
 
 
 
-int bit;
-int loopA;
+int bit;	/* bits from shift register */
+int loopA;					
 int sensorNr;
-int in = 0;
-int out = 0;
-int inOutArray[24];
-int bitArray[24];
-long long int timeArray[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
+int in = 0;	/* number of bees moving IN Odd/Even sensor */
+int out = 0;	/* number of bees moving OUT Even/odd sensor */
+int inOutArray[24];						
+int bitArray[24];	/* Array of bits from shift register*/
+long long int timeArray[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};	/* put start time  for speed calculations */
 long long int timeDiff;
-long long int timeInArray[10000];
-long long int  timeOutArray[10000];
-int timeInNumberArray = 0;
-int timeOutNumberArray = 0;
+long long int timeInArray[10000];	/* Times IN to average for later speed calculation */ 
+long long int  timeOutArray[10000];	/* Times OUT to average for later speed calculation */
+int timeInNumberArray = 0;		/* Number of the element in timeInArray, will be reset at snding to file */
+int timeOutNumberArray = 0;		/* Number of the ellement in timeOutArray, will be reset at sending to file */
 
 
 
@@ -32,8 +32,12 @@ int  Out=44;
 float speedIn=55.2;
 float speedOut=66.7;
 
+/* ######################### Functions declarations ############################# */
+
 int counter();
 long long int getMicrotime();
+
+/* ######################### Main program ####################################### */
 
 int main (void)
 	{
@@ -69,25 +73,37 @@ int main (void)
 
 
 /* Data analysis  */
-
+		printf("Getting IN #####################################\n");
 		bitArray[0] = 1;
-
                 counter();
-		printf("#########################################\n");
-	
+
+		printf("Getting deeper IN #########################################\n");
 		bitArray[1] = 1;
 		counter();
-		printf("#########################################\n");
 
+		printf("Reset IN  #########################################\n");
+		bitArray[0] = 0;
+		bitArray[1] = 0;
+		counter();
 	
-	
-	
+		printf("Getting OUT ######################################\n");
+		bitArray[1] = 1;
+		counter();
+
+		printf("Getting deeper OUT #################################\n");
+		bitArray[0] = 1;
+		counter();
+
+		printf("Reset OUT #################################################\n");
+		bitArray[1] = 0;
+		bitArray[0] = 0;
+		counter();
 
 
 		return 0;
 	}
 
-/* ####################  Functions ####################*/
+/* ####################  Functions definition ####################*/
 
 
 
@@ -100,22 +116,19 @@ int counter ()
 			printf("BEFORE: bitArray: %d, ",bitArray[loopA]);
                         printf("bitArray+1:%d, ",bitArray[loopA+1]);
 			printf("bitArray-1:%d, ",bitArray[loopA-1]);
-                        printf(" inOutArray:%d, ",inOutArray[loopA]);
-                        printf(" inOutArray+1:%d, ",inOutArray[loopA+1]);
-			printf(" inOutArray-1:%d ",inOutArray[loopA-1]);
+                        printf("inOutArray:%d, ",inOutArray[loopA]);
+                        printf("inOutArray+1:%d, ",inOutArray[loopA+1]);
+			printf("inOutArray-1:%d ",inOutArray[loopA-1]);
                         printf("in: %d ",in);
 			printf("out: %d\n",out);
 
 
 
-
-
-
-                       /* Check for even number - bee is going from Inside -> Outside*/
+             
                         if(loopA % 2 == 0)
                                 {
 
-					/* Case of bee walking from outside to inside, first sensor triggered */
+					/* Case of bee walking from OUT to IN, first sensor triggered is EVEN */
 					if (bitArray[loopA] == 1 && bitArray[loopA+1] == 0 && inOutArray[loopA] == 0 && inOutArray[loopA+1] == 0)
 						{
 							inOutArray[loopA] = 1;
@@ -137,6 +150,8 @@ int counter ()
 						{
 							inOutArray[loopA] = 0;
 							inOutArray[loopA+1] = 0;
+							timeArray[loopA] = 0;
+							timeArray[loopA+1] = 0;
 							printf("Inside EVEN pos 3\n");
 						}
 
@@ -146,7 +161,7 @@ int counter ()
 			else
 				{
 
-					/* Case of bee walking from outside to inside, first sensor triggered */
+					/* Case of bee walking from IN to OUT, first sensor triggered ODD */
                                         if (bitArray[loopA] == 1 && bitArray[loopA-1] == 0 && inOutArray[loopA] == 0 && inOutArray[loopA-1] == 0)
                                                 {
                                                         inOutArray[loopA] = 1;
@@ -160,16 +175,19 @@ int counter ()
                                         else if (bitArray[loopA] == 1 && bitArray[loopA-1] == 1 && inOutArray[loopA] ==1 && timeArray[loopA-1] == 0)
                                                 {
                                                         timeDiff = getMicrotime() - timeArray[loopA];
-                                                        timeInArray[timeInNumberArray] = timeDiff;
-                                                        timeInNumberArray = timeInNumberArray-1;
+                                                        timeOutArray[timeOutNumberArray] = timeDiff;
+                                                        timeOutNumberArray = timeOutNumberArray+1;
                                                         out = out +1;
 							printf("Inside ODD pos 2\n");
+							printf("DiffOut:%lld\n",timeOutArray[timeOutNumberArray-1]);
                                                 }
 
                                         else if (bitArray[loopA] == 0 && bitArray[loopA-1] == 0 && inOutArray[loopA] == 1 && inOutArray[loopA-1] == 1)
                                                 {
                                                         inOutArray[loopA] = 0;
                                                         inOutArray[loopA-1] = 0;
+							timeArray[loopA] = 0;
+							timeArray[loopA-1] = 0;
 							printf("Inside ODD pos 3\n");
                                                 }
 
@@ -181,11 +199,12 @@ int counter ()
                         printf(" inOutArray:%d, ",inOutArray[loopA]);
                         printf(" inOutArray+1:%d, ",inOutArray[loopA+1]);
 			printf("inOutArray-1:%d, ",inOutArray[loopA -1]);
-                        printf("in: %d ",in);
-			printf("out: %d",out);
-			printf("speedIN:%lld, ",timeInArray[loopA]);
-			printf("speedOUT:%lld, ",timeOutArray[loopA]);
-			printf("timeArray: %lld\n\n",timeArray[loopA]);
+                        printf("in:%d, ",in);
+			printf("out:%d, ",out);
+			printf("speedIN:%lld, ",timeInArray[timeInNumberArray-1]);
+			printf("speedOUT:%lld, ",timeOutArray[timeOutNumberArray-1]);
+			printf("timeArray: %lld, ",timeArray[loopA]);
+			printf("timeInNumberArray: %d\n\n",timeInNumberArray);
 
 
                 }

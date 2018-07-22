@@ -5,32 +5,29 @@
 #include <sys/time.h>
 
 /* Configuration variable*/
-int numOfChannels = 2;
+int numOfChannels = 2;;
+int hive = 21;
 
 /* Proram variable */
 
 
 
 int bit;	/* bits from shift register */
-int loopA;					
+int loopA;
 int sensorNr;
 int in = 0;	/* number of bees moving IN Odd/Even sensor */
 int out = 0;	/* number of bees moving OUT Even/odd sensor */
-int inOutArray[24];						
+int inOutArray[24];
 int bitArray[24];	/* Array of bits from shift register*/
 long long int timeArray[24] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};	/* put start time  for speed calculations */
 long long int timeDiff;
-long long int timeInArray[10000];	/* Times IN to average for later speed calculation */ 
+long long int timeInArray[10000];	/* Times IN to average for later speed calculation */
 long long int  timeOutArray[10000];	/* Times OUT to average for later speed calculation */
 int timeInNumberArray = 0;		/* Number of the element in timeInArray, will be reset at snding to file */
 int timeOutNumberArray = 0;		/* Number of the ellement in timeOutArray, will be reset at sending to file */
 
 
 
-int In=33;
-int  Out=44;
-float speedIn=55.2;
-float speedOut=66.7;
 
 /* ######################### Functions declarations ############################# */
 
@@ -41,7 +38,6 @@ long long int getMicrotime();
 
 int main (void)
 	{
-		
 		wiringPiSetup();
 		pinMode (2, OUTPUT);
 		pinMode (3, OUTPUT);
@@ -56,20 +52,13 @@ int main (void)
 
 			{
 
-			/*	printf("%d",bit);*/
-
 				bitArray[sensorNr] = bit;
-			/*	printf("%d", bitArray[0]) ;*/
-
 				digitalWrite (2, HIGH);
 				delay(1);
 				digitalWrite (2, LOW);
 				delay(1);
 				bit = digitalRead (0);
 			}
-
-
-
 
 
 /* Data analysis  */
@@ -85,7 +74,7 @@ int main (void)
 		bitArray[0] = 0;
 		bitArray[1] = 0;
 		counter();
-	
+
 		printf("Getting OUT ######################################\n");
 		bitArray[1] = 1;
 		counter();
@@ -100,6 +89,96 @@ int main (void)
 		counter();
 
 
+printf("Getting IN #####################################\n");
+                bitArray[0] = 1;
+                counter();
+
+                printf("Getting deeper IN #########################################\n");
+                bitArray[1] = 1;
+                counter();
+
+                printf("Reset IN  #########################################\n");
+                bitArray[0] = 0;
+                bitArray[1] = 0;
+                counter();
+
+
+
+
+/* Gettint Unux time*/
+ 		time_t seconds;
+
+   		seconds = time(NULL);
+   		printf("Seconds:  %ld\n", seconds);
+
+/* calculate the speed */
+
+		float speedIn = 0;
+		float speedOut = 0;
+	  	long long int sum;
+		int speedLoop;
+		int numOfElements = 0;
+   		float avg;
+
+	/* Speed IN */
+   		sum = avg = numOfElements = 0 ;
+
+   		for(speedLoop = 0; speedLoop <= 300; speedLoop++) 
+        		{
+                		if (timeInArray[speedLoop] != 0)
+					{
+						sum = sum + timeInArray[speedLoop];
+						numOfElements = numOfElements +1;
+					}
+        		}
+
+   		speedIn = (float)sum / numOfElements;
+
+	/* Speed OUT */
+		sum = avg = numOfElements = 0;
+
+                for(speedLoop = 0; speedLoop <= 300; speedLoop++) 
+                        {
+                                if (timeOutArray[speedLoop] != 0)
+                                        {
+                                                sum = sum + timeOutArray[speedLoop];
+                                                numOfElements = numOfElements +1;
+                                        }
+                        }
+
+                speedOut = (float)sum / numOfElements;
+
+
+
+   		printf("Speed IN is %.1f\n", speedIn);
+		printf("Speed OUT is %.1f\n",speedOut);   
+
+
+
+
+
+
+/* Putting data into the file */
+
+                FILE *fptr;
+                fptr = fopen("file.txt","a");
+                if(fptr == NULL)
+                        {
+                                printf("Error!, can not access the file, does it exist?\n");
+                                exit(1);
+                        }
+
+		fprintf(fptr,"Counts,");
+		fprintf(fptr,"Hive=%d ",hive);
+                fprintf(fptr,"Time=%ld,",seconds);
+                fprintf(fptr,"In=%i,",in);
+                fprintf(fptr,"Out=%i,",out);
+                fprintf(fptr,"SpeedIn=%.1f,",speedIn);
+                fprintf(fptr,"SpeedOut=%.1f\n",speedOut);
+
+                fclose(fptr);
+
+
 		return 0;
 	}
 
@@ -107,9 +186,9 @@ int main (void)
 
 
 
-int counter () 
+int counter ()
 	{
-		 for ( loopA=0; loopA<= numOfChannels*2-1; loopA++)  
+		 for ( loopA=0; loopA<= numOfChannels*2-1; loopA++)
                 {
                         printf("\n\nSensor number: %d\n",loopA);
 
@@ -123,8 +202,6 @@ int counter ()
 			printf("out: %d\n",out);
 
 
-
-             
                         if(loopA % 2 == 0)
                                 {
 
